@@ -20,12 +20,12 @@ PUSTE="."
 ##
 # \brief Ustawia tryb verbose
 ##
-function set_vervose {
+function set_verbose {
     set -x
 }
 
 ##
-# \brief Wyswitla stan planszy
+# \brief Wyswietla stan planszy
 ##
 function wyswietl {
     clear
@@ -46,7 +46,7 @@ function wyswietl {
 }
 
 ##
-# \brief Sprawdza czy podanee 3 argumenty nie są pustę i czy sta takie same
+# \brief Sprawdza czy podane 3 argumenty nie są pustę i czy sta takie same
 # \param $1 Argument do porównania
 # \param $2 Argument do porównania
 # \param $3 Argument do porównania
@@ -101,6 +101,7 @@ function sprawdz_wygrana_3_3 {
         fi
     done
 
+    # Czy po ukosie?
     let ch1=$i*$TRUE_DIM+$j
     let ch2=$(expr $i+1)*$TRUE_DIM+$j+1
     let ch3=$(expr $i+2)*$TRUE_DIM+$j+2
@@ -123,7 +124,7 @@ function sprawdz_wygrana_3_3 {
 }
 
 ##
-# \brief Dla wszytskich możliwych sub-macierzy o rozmiarze 3 na 3 spawrdza czy zachodzi watunek wygranej
+# \brief Dla wszytskich możliwych sub-macierzy o rozmiarze 3 na 3 sprawdza czy zachodzi warunek wygranej
 # \param $1 Symbol jakim operuje gracz
 # \return 1 gdy gdzies w maicerzy zachoidzi warunek wygranej.
 ##
@@ -138,7 +139,6 @@ function sprawdz_wygrana {
             if [ 1 -eq $res ]; then
                 return 1
             fi
-            set +x
         done
     done
 
@@ -165,7 +165,6 @@ function eval_plansza {
         fi
         let DIM=${TRUE_DIM}-1
     fi
-    set +x
 }
 
 ##
@@ -176,7 +175,7 @@ function zacznij {
         case "${flag}" in
             a) AUTO='true' ;;
             d) eval_plansza ${OPTARG};;
-            v) set_vervose ;;
+            v) set_verbose ;;
             h) 
                 echo "$0"
                 echo "Brief: "
