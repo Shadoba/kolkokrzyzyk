@@ -53,7 +53,7 @@ function set_verbose {
 # \brief Wyswietla stan planszy
 ##
 function wyswietl {
-    #clear
+    clear
     let ZAKRES=TRUE_DIM*2
     echo "#  ${ALPHABET:0:$ZAKRES}"
 
@@ -95,6 +95,7 @@ function takie_same {
 # \return 1 gdy gdzies w maicerzy zachoidzi warunek wygranej.
 ##
 function sprawdz_wygrana_3_3 {
+    #set -x
     SYMBOL=$1
     i=$2
     j=$3
@@ -144,7 +145,7 @@ function sprawdz_wygrana_3_3 {
     if [ 1 -eq $res ]; then
         return 1
     fi
-
+    #set +x
     return 0
 }
 
