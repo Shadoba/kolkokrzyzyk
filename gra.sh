@@ -16,6 +16,31 @@ WYGRANA=255
 MAX_RUCHOW=9
 RUCH=0
 PUSTE="."
+PATH_DOGRY="/tmp/.ttt.save"
+LEADING_FLAG="none"
+
+##
+# \brief Zapisuje gre i wychodzi
+##
+function save_current(){
+    echo $GRACZ > $PATH_DOGRY
+    echo $DIM >> $PATH_DOGRY
+    echo $RUCH >> $PATH_DOGRY
+    echo $MAX_RUCHOW >> $PATH_DOGRY
+    for i in $(eval echo "{0..$DIM}")
+    do
+        PLANSZA_TMP=""
+        for j in $(eval echo "{0..$DIM}")
+        do
+            let ch=$i*$TRUE_DIM+$j
+            echo "${PLANSZA[ch]}" >> $PATH_DOGRY
+        done
+    done
+    exit 1
+}
+
+
+trap save_current SIGINT
 
 ##
 # \brief Ustawia tryb verbose
@@ -28,7 +53,7 @@ function set_verbose {
 # \brief Wyswietla stan planszy
 ##
 function wyswietl {
-    clear
+    #clear
     let ZAKRES=TRUE_DIM*2
     echo "#  ${ALPHABET:0:$ZAKRES}"
 
@@ -157,13 +182,36 @@ function zmiana_gracza {
 # \brief Weryfikuje zarządanee przez użytkownika zmiane rozmiaru planszy
 ##
 function eval_plansza {
-    echo $1
-    if [ ! -z $1 ]; then
-        TRUE_DIM=$1
-        if [ $TRUE_DIM -gt $MAX_DIM ]; then
-            TRUE_DIM=$MAX_DIM
+    if [ ! "$LEADING_FLAG" = "L" ]; then 
+        echo $1
+        if [ ! -z $1 ]; then
+            TRUE_DIM=$1
+            if [ $TRUE_DIM -gt $MAX_DIM ]; then
+                TRUE_DIM=$MAX_DIM
+            fi
+            let DIM=${TRUE_DIM}-1
         fi
-        let DIM=${TRUE_DIM}-1
+        LEADING_FLAG="D"
+    fi
+}
+
+function load_game {
+    if [ ! "$LEADING_FLAG" = "D" ]; then 
+        local CNT=0
+        local ch=0
+        while read -r line; do 
+            case "${CNT}" in
+                0) GRACZ=$line; let CNT=$CNT+1 ;;
+                1) DIM=$line ; let TRUE_DIM=$DIM+1; let CNT=$CNT+1 ;;
+                2) RUCH=$line; let CNT=$CNT+1 ;;
+                3) MAX_RUCHOW=$line; let CNT=$CNT+1 ;;
+                4) 
+                    PLANSZA[ch]=$line
+                    let ch=$ch+1
+                    ;;
+            esac
+        done < "$PATH_DOGRY"
+        LEADING_FLAG="L"
     fi
 }
 
@@ -171,34 +219,39 @@ function eval_plansza {
 # \brief Inicjalizuje rozgrywke
 ##
 function zacznij {
-    while getopts 'd:avh' flag; do
+    while getopts 'd:avlh' flag; do
         case "${flag}" in
             a) AUTO='true' ;;
             d) eval_plansza ${OPTARG};;
             v) set_verbose ;;
+            l) load_game;;
             h) 
                 echo "$0"
                 echo "Brief: "
                 echo "    Gra w kółko i krzyżyk"
                 echo "Control:"
-                echo "    Numpad --> symbole z zakresu 0 do 9 (znaki wewnątrz A B C ... są tylko dla rożróżnienia pionu i poziomu)"
+                echo "    Numpad  --> symbole z zakresu 0 do 9 (znaki wewnątrz A B C ... są tylko dla rożróżnienia pionu i poziomu)"
+                echo "    Wyjscie --> CTRL+C Wyjdzie i zapisze stan tej gry. Załaduj później z flagą 'l'"
                 echo "Options: "
-                echo "    -d ARG   -- Zdefiniuj rozmiar kwadratowej planszy. Zamiast ARG podaj długość boku planszy"
+                echo "    -d ARG   -- Zdefiniuj rozmiar kwadratowej planszy. Zamiast ARG podaj długość boku planszy. Pominie flage 'l'"
                 echo "    -v       -- Tryb verbose, do debugowania"
+                echo "    -l       -- Załaduj stan ostatniej gry. Pominie flagę 'd'"
                 echo "    -h       -- Pomoc"
                 exit 0;
                 ;;
         esac
     done
     
-    for i in $(eval echo "{0..$DIM}")
-    do
-        for j in $(eval echo "{0..$DIM}")
+    if [ ! "$LEADING_FLAG" = "L" ]; then 
+        for i in $(eval echo "{0..$DIM}")
         do
-            let ch=$i*$TRUE_DIM+$j
-            PLANSZA[ch]="${PUSTE}"
+            for j in $(eval echo "{0..$DIM}")
+            do
+                let ch=$i*$TRUE_DIM+$j
+                PLANSZA[ch]="${PUSTE}"
+            done
         done
-    done
+    fi
 
     let MAX_RUCHOW=$TRUE_DIM*$TRUE_DIM
 }
